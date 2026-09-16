@@ -1,12 +1,12 @@
 {
   "name": "render-omniroute",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "engines": {
     "node": ">=22.22.2 <23 || >=24.0.0 <27"
   },
   "scripts": {
-    "start": "node ./node_modules/omniroute/dist/index.js --port ${PORT:-80}"
+    "start": "omniroute --port ${PORT:-80}"
   },
   "dependencies": {
     "omniroute": "3.8.50"
