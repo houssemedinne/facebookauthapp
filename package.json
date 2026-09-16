@@ -1,0 +1,9 @@
+{
+  "name": "render-omniroute",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm install -g omniroute",
+    "start": "omniroute --port $PORT"
+  }
+}
