@@ -3,7 +3,7 @@ FROM node:22.22.2-bookworm-slim
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev && test -x /app/node_modules/.bin/omniroute
 
 ENV NODE_ENV=production
 ENV OMNIROUTE_MEMORY_MB=256
@@ -14,8 +14,7 @@ ENV SEMANTIC_CACHE_MAX_BYTES=1048576
 ENV STREAM_HISTORY_MAX=10
 ENV OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1
 
-# Vercel injects PORT at runtime. Use it directly so the container
-# always binds to the port expected by Vercel's container runtime.
+# Vercel injects PORT at runtime.
 EXPOSE 80
 
-CMD ["sh", "-c", "exec omniroute --port ${PORT:-80}"]
+CMD ["npm", "start"]
