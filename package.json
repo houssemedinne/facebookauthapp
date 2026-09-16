@@ -1,6 +1,6 @@
 {
   "name": "render-omniroute",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "engines": {
     "node": ">=22.22.2 <23 || >=24.0.0 <27"
@@ -9,6 +9,6 @@
     "start": "omniroute --port ${PORT:-80}"
   },
   "dependencies": {
-    "omniroute": "3.8.50"
+    "omniroute": "3.8.51"
   }
 }
