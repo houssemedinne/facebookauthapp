@@ -1,0 +1,18 @@
+FROM node:22.22.2-bookworm-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --omit=dev
+
+ENV NODE_ENV=production
+ENV OMNIROUTE_MEMORY_MB=256
+ENV PROMPT_CACHE_MAX_SIZE=20
+ENV PROMPT_CACHE_MAX_BYTES=524288
+ENV SEMANTIC_CACHE_MAX_SIZE=25
+ENV SEMANTIC_CACHE_MAX_BYTES=1048576
+ENV STREAM_HISTORY_MAX=10
+ENV OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1
+
+# Vercel injects PORT at runtime. OmniRoute receives it through npm start.
+CMD ["npm", "start"]
