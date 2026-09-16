@@ -1,0 +1,14 @@
+{
+  "name": "render-omniroute",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "22.22.2"
+  },
+  "scripts": {
+    "start": "omniroute --port $PORT"
+  },
+  "dependencies": {
+    "omniroute": "^3.8.50"
+  }
+}
