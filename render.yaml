@@ -4,8 +4,8 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: npm install -g omniroute
-    startCommand: omniroute --port $PORT
+    buildCommand: npm install
+    startCommand: npm start
     autoDeployTrigger: commit
     healthCheckPath: /
     envVars:
