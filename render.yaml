@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: omniroute
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install -g omniroute
+    startCommand: omniroute --port $PORT
+    autoDeployTrigger: commit
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22.22.2"
+      - key: NODE_ENV
+        value: production
