@@ -13,3 +13,17 @@ services:
         value: "22.22.2"
       - key: NODE_ENV
         value: production
+      - key: OMNIROUTE_MEMORY_MB
+        value: "256"
+      - key: PROMPT_CACHE_MAX_SIZE
+        value: "20"
+      - key: PROMPT_CACHE_MAX_BYTES
+        value: "524288"
+      - key: SEMANTIC_CACHE_MAX_SIZE
+        value: "25"
+      - key: SEMANTIC_CACHE_MAX_BYTES
+        value: "1048576"
+      - key: STREAM_HISTORY_MAX
+        value: "10"
+      - key: OMNIROUTE_DISABLE_BACKGROUND_SERVICES
+        value: "1"
