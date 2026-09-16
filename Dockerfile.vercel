@@ -14,5 +14,8 @@ ENV SEMANTIC_CACHE_MAX_BYTES=1048576
 ENV STREAM_HISTORY_MAX=10
 ENV OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1
 
-# Vercel injects PORT at runtime. OmniRoute receives it through npm start.
-CMD ["npm", "start"]
+# Vercel injects PORT at runtime. Use it directly so the container
+# always binds to the port expected by Vercel's container runtime.
+EXPOSE 80
+
+CMD ["sh", "-c", "exec omniroute --port ${PORT:-80}"]
