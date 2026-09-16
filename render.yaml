@@ -1,17 +1,13 @@
 services:
   - type: web
-    name: omniroot
-    runtime: docker
+    name: omniroute
+    runtime: node
     plan: starter
     region: frankfurt
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    buildCommand: npm run build
+    startCommand: npm start
     autoDeployTrigger: commit
-    healthCheckPath: /test
+    healthCheckPath: /
     envVars:
-      - key: PORT
-        value: "10000"
-      - key: PYTHONUNBUFFERED
-        value: "1"
-      - key: PYTHONDONTWRITEBYTECODE
-        value: "1"
+      - key: NODE_ENV
+        value: production
