@@ -2,7 +2,7 @@ services:
   - type: web
     name: omniroute
     runtime: node
-    plan: starter
+    plan: free
     region: frankfurt
     buildCommand: npm run build
     startCommand: npm start
