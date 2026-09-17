@@ -31,9 +31,6 @@ export async function GET(request) {
   if (!FB_APP_ID || !FB_APP_SECRET || !FB_REDIRECT_URI) {
     return errorResponse('OAuth environment variables are not configured.', 500);
   }
-  if (!process.env.SESSION_SECRET) {
-    return errorResponse('SESSION_SECRET is not configured.', 500);
-  }
 
   const tokenParams = new URLSearchParams({
     client_id: FB_APP_ID,
