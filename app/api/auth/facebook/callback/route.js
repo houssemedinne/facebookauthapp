@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { encryptSession, setSessionCookie } from '../../../../../lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,12 @@ export async function GET(request) {
   const returnedState = url.searchParams.get('state');
   const error = url.searchParams.get('error_description') || url.searchParams.get('error');
   const savedState = request.cookies.get('fb_oauth_state')?.value;
-  const { FB_APP_ID, FB_APP_SECRET, FB_REDIRECT_URI, FB_GRAPH_VERSION = 'v26.0' } = process.env;
+  const {
+    FB_APP_ID,
+    FB_APP_SECRET,
+    FB_REDIRECT_URI,
+    FB_GRAPH_VERSION = 'v26.0'
+  } = process.env;
 
   if (error) return errorResponse(error);
   if (!code) return errorResponse('No authorization code was returned by Facebook.');
@@ -24,6 +30,9 @@ export async function GET(request) {
   }
   if (!FB_APP_ID || !FB_APP_SECRET || !FB_REDIRECT_URI) {
     return errorResponse('OAuth environment variables are not configured.', 500);
+  }
+  if (!process.env.SESSION_SECRET) {
+    return errorResponse('SESSION_SECRET is not configured.', 500);
   }
 
   const tokenParams = new URLSearchParams({
@@ -44,34 +53,32 @@ export async function GET(request) {
   }
 
   const userToken = tokenData.access_token;
-  const pagesParams = new URLSearchParams({
-    fields: 'id,name,access_token,category',
+  const meParams = new URLSearchParams({
+    fields: 'id,name',
     access_token: userToken
   });
 
-  const pagesResponse = await fetch(
-    `https://graph.facebook.com/${FB_GRAPH_VERSION}/me/accounts?${pagesParams}`,
+  const meResponse = await fetch(
+    `https://graph.facebook.com/${FB_GRAPH_VERSION}/me?${meParams}`,
     { cache: 'no-store' }
   );
-  const pagesData = await pagesResponse.json();
+  const meData = await meResponse.json();
 
-  if (!pagesResponse.ok) {
-    return errorResponse(pagesData.error?.message || 'Could not retrieve the user Pages.');
+  if (!meResponse.ok || !meData.id) {
+    return errorResponse(meData.error?.message || 'Could not retrieve the Facebook user profile.');
   }
 
-  const pages = Array.isArray(pagesData.data) ? pagesData.data : [];
-
-  const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Facebook OAuth Result</title>
-<style>body{margin:0;background:#f5f7fb;font-family:system-ui,sans-serif;color:#111827}.wrap{max-width:760px;margin:60px auto;padding:24px}.card{background:#fff;border-radius:18px;padding:30px;box-shadow:0 12px 40px rgba(0,0,0,.08)}.ok{color:#166534;background:#dcfce7;padding:12px;border-radius:10px}.page{border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-top:12px}.muted{color:#6b7280}a{color:#1877f2}</style></head>
-<body><div class="wrap"><div class="card"><h1>Facebook OAuth succeeded</h1><p class="ok">Authorization code exchanged successfully.</p><h2>Pages returned by Facebook</h2>
-${pages.length ? pages.map((page) => `<div class="page"><strong>${page.name ?? 'Unnamed Page'}</strong><div class="muted">Page ID: ${page.id ?? 'unknown'}</div><div>Page access token: ${page.access_token ? 'received ✓' : 'not returned'}</div></div>`).join('') : '<p class="muted">No Pages were returned for this Facebook account.</p>'}
-<p class="muted" style="margin-top:24px">User access token: received (${userToken.length} characters). The token itself is not displayed.</p>
-<p style="margin-top:24px"><a href="/">Back to test page</a></p></div></div></body></html>`;
-
-  const response = new NextResponse(html, {
-    headers: { 'content-type': 'text/html; charset=utf-8' }
+  const sessionValue = await encryptSession({
+    userToken,
+    user: {
+      id: meData.id,
+      name: meData.name || 'Facebook user'
+    },
+    createdAt: Date.now()
   });
+
+  const response = NextResponse.redirect(new URL('/dashboard', request.url));
+  setSessionCookie(response, sessionValue);
   response.cookies.delete('fb_oauth_state');
   return response;
 }
