@@ -9,8 +9,17 @@ export async function GET(request) {
     return new NextResponse('Facebook OAuth is not configured.', { status: 500 });
   }
 
+  // The OAuth callback URI is fixed in Meta's app settings. Make sure the
+  // state cookie is created on that same origin even when this endpoint is
+  // opened through a Vercel deployment URL.
+  const requestUrl = new URL(request.url);
+  const callbackUrl = new URL(FB_REDIRECT_URI);
+  if (requestUrl.origin !== callbackUrl.origin) {
+    return NextResponse.redirect(new URL('/api/auth/facebook', callbackUrl.origin));
+  }
+
   const state = crypto.randomUUID();
-  const response = NextResponse.redirect(new URL('/api/auth/facebook/callback', request.url));
+  const response = NextResponse.redirect(new URL('/api/auth/facebook/callback', callbackUrl.origin));
   response.cookies.set('fb_oauth_state', state, {
     httpOnly: true,
     secure: true,
