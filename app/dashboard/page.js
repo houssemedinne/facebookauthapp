@@ -7,8 +7,11 @@ export const dynamic = 'force-dynamic';
 function formatDate(timestamp) {
   if (!timestamp) return 'Not provided by Facebook';
   return new Date(timestamp).toLocaleString('en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
     timeZoneName: 'short'
   });
 }
