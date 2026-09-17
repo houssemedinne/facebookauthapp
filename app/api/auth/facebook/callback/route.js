@@ -10,6 +10,25 @@ function errorResponse(message, status = 400) {
   });
 }
 
+async function debugToken(accessToken, appId, appSecret, graphVersion) {
+  const params = new URLSearchParams({
+    input_token: accessToken,
+    access_token: `${appId}|${appSecret}`
+  });
+
+  const response = await fetch(
+    `https://graph.facebook.com/${graphVersion}/debug_token?${params}`,
+    { cache: 'no-store' }
+  );
+  const data = await response.json();
+
+  if (!response.ok || !data.data) {
+    throw new Error(data.error?.message || 'Could not inspect the Facebook access token.');
+  }
+
+  return data.data;
+}
+
 export async function GET(request) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
@@ -65,11 +84,28 @@ export async function GET(request) {
     return errorResponse(meData.error?.message || 'Could not retrieve the Facebook user profile.');
   }
 
+  let tokenInfo;
+  try {
+    tokenInfo = await debugToken(userToken, FB_APP_ID, FB_APP_SECRET, FB_GRAPH_VERSION);
+  } catch (tokenError) {
+    return errorResponse(tokenError.message || 'Could not inspect the Facebook access token.', 502);
+  }
+
   const sessionValue = await encryptSession({
     userToken,
     user: {
       id: meData.id,
       name: meData.name || 'Facebook user'
+    },
+    token: {
+      type: tokenInfo.type || null,
+      appId: tokenInfo.app_id || null,
+      issuedAt: tokenInfo.issued_at ? tokenInfo.issued_at * 1000 : null,
+      expiresAt: tokenInfo.expires_at ? tokenInfo.expires_at * 1000 : null,
+      dataAccessExpiresAt: tokenInfo.data_access_expiration_time
+        ? tokenInfo.data_access_expiration_time * 1000
+        : null,
+      isValid: tokenInfo.is_valid === true
     },
     createdAt: Date.now()
   });
