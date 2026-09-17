@@ -4,6 +4,26 @@ import { decryptSession, SESSION_COOKIE } from '../../lib/session';
 
 export const dynamic = 'force-dynamic';
 
+function formatDate(timestamp) {
+  if (!timestamp) return 'Not provided by Facebook';
+  return new Date(timestamp).toLocaleString('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZoneName: 'short'
+  });
+}
+
+function formatRemaining(expiresAt) {
+  if (!expiresAt) return 'No expiration reported';
+  const remainingMs = expiresAt - Date.now();
+  if (remainingMs <= 0) return 'Expired';
+
+  const totalHours = Math.floor(remainingMs / (1000 * 60 * 60));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  return days > 0 ? `${days} day${days === 1 ? '' : 's'} ${hours} hour${hours === 1 ? '' : 's'} remaining` : `${hours} hour${hours === 1 ? '' : 's'} remaining`;
+}
+
 export default async function Dashboard() {
   const cookieStore = await cookies();
   const encryptedSession = cookieStore.get(SESSION_COOKIE)?.value;
@@ -38,6 +58,11 @@ export default async function Dashboard() {
     pagesError = 'Could not connect to Facebook to load Pages.';
   }
 
+  const token = session.token || {};
+  const tokenType = token.type || 'Unknown';
+  const tokenStatus = token.isValid === false ? 'Invalid' : 'Valid';
+  const tokenStatusStyle = tokenStatus === 'Valid' ? styles.tokenValid : styles.tokenInvalid;
+
   return (
     <main style={styles.main}>
       <section style={styles.container}>
@@ -65,6 +90,21 @@ export default async function Dashboard() {
             <strong>Access granted</strong>
             <div style={styles.muted}>Facebook authentication completed successfully.</div>
           </div>
+        </div>
+
+        <div style={styles.tokenCard}>
+          <div style={styles.sectionHeader}>
+            <h2 style={styles.sectionTitle}>Access Token</h2>
+            <span style={tokenStatusStyle}>{tokenStatus}</span>
+          </div>
+          <div style={styles.tokenGrid}>
+            <div><div style={styles.label}>Token type</div><strong>{tokenType}</strong></div>
+            <div><div style={styles.label}>Issued</div><strong>{formatDate(token.issuedAt)}</strong></div>
+            <div><div style={styles.label}>Expires</div><strong>{formatDate(token.expiresAt)}</strong></div>
+            <div><div style={styles.label}>Lifetime</div><strong>{formatRemaining(token.expiresAt)}</strong></div>
+            <div><div style={styles.label}>Data access expiration</div><strong>{formatDate(token.dataAccessExpiresAt)}</strong></div>
+          </div>
+          <div style={styles.tokenNote}>The access token itself is never displayed in the dashboard.</div>
         </div>
 
         <div style={styles.section}>
@@ -116,9 +156,15 @@ const styles = {
   muted: { color: '#6b7280', fontSize: 13, marginTop: 4 },
   accessCard: { marginTop: 14, display: 'flex', alignItems: 'center', gap: 12, padding: 16, borderRadius: 14, background: '#f0fdf4', color: '#166534' },
   check: { width: 28, height: 28, borderRadius: '50%', background: '#22c55e', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800 },
+  tokenCard: { marginTop: 22, padding: 20, border: '1px solid #e5e7eb', borderRadius: 16, background: '#fafafa' },
   section: { marginTop: 30 },
-  sectionHeader: { display: 'flex', alignItems: 'center', gap: 10 },
+  sectionHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   sectionTitle: { margin: 0, fontSize: 22 },
+  tokenValid: { background: '#dcfce7', color: '#166534', borderRadius: 999, padding: '6px 10px', fontSize: 12, fontWeight: 800 },
+  tokenInvalid: { background: '#fee2e2', color: '#991b1b', borderRadius: 999, padding: '6px 10px', fontSize: 12, fontWeight: 800 },
+  tokenGrid: { marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 16 },
+  label: { color: '#6b7280', fontSize: 12, marginBottom: 5 },
+  tokenNote: { marginTop: 18, color: '#6b7280', fontSize: 12 },
   count: { minWidth: 24, height: 24, borderRadius: 999, background: '#eef2ff', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700 },
   page: { marginTop: 12, display: 'flex', alignItems: 'center', gap: 14, padding: 16, border: '1px solid #e5e7eb', borderRadius: 14 },
   pageIcon: { width: 42, height: 42, borderRadius: 10, background: '#eef2ff', display: 'grid', placeItems: 'center', fontWeight: 800 },
